@@ -27,7 +27,7 @@ bool DatabaseManager::doesUserExistInDB(std::string userName)
 {
 	std::string query = "SELECT COUNT(passWord) FROM swarchTable WHERE userName = ?";
 	
-	// Prepare the query for use by the sqlite
+	// Prepare the query for use by the SQLite
 	error = sqlite3_prepare_v2(db, query.c_str(), query.length(), &stmt, &tail);
 
 	sqlite3_bind_text(stmt, 1, userName.c_str(), userName.length(), SQLITE_TRANSIENT);
@@ -65,7 +65,7 @@ bool DatabaseManager::doesPasswordMatchUser(std::string userName, std::string pa
 {
 	std::string query = "SELECT passWord FROM swarchTable WHERE userName = ?";
 
-	// Prepare the query for use by the sqlite
+	// Prepare the query for use by the SQLite
 	error = sqlite3_prepare_v2(db, query.c_str(), query.length(), &stmt, &tail);
 
 	sqlite3_bind_text(stmt, 1, userName.c_str(), userName.length(), SQLITE_TRANSIENT);
@@ -101,7 +101,7 @@ void DatabaseManager::updateEntry(std::string userName, int score)
 {
 	std::string query = "UPDATE swarchTable SET score = ? WHERE userName = ? AND score < ?";
 
-	// Prepare the query for use by the sqlite
+	// Prepare the query for use by the SQLite
 	error = sqlite3_prepare_v2(db, query.c_str(), query.length(), &stmt, &tail);
 
 	sqlite3_bind_int(stmt, 1, score);
@@ -164,17 +164,14 @@ void DatabaseManager::insertEntry(std::string userName, std::string passWord)
 
 bool DatabaseManager::doesTableExistInDB()
 {
-	// Construct a query that will insert a new user into our database
-	// The query we are using inserts a new entry based on username, password and score
 	std::string query = "SELECT COUNT(*) FROM swarchTable";
 
 	// Prepares the SQL Query for use
 	error = sqlite3_prepare_v2(db, query.c_str(), query.length(), &stmt, &tail);
 
-	// If the SQL file wasn't prepared correctly, exit the method
 	if(error != SQLITE_OK)
 	{
-		std::cout << "Couldn't prepare sql" << std::endl;
+		std::cout << "Couldn't prepare SQL query" << std::endl;
 		sqlite3_finalize(stmt);
 		return false;
 	}
@@ -185,7 +182,6 @@ bool DatabaseManager::doesTableExistInDB()
 		int count = sqlite3_column_int(stmt, 0);
 		std::cout << count << std::endl;
 
-		// If there is a password, return true
 		if(count >= 0)
 		{
 			std::cout << "The table exists!" << std::endl;
@@ -204,13 +200,11 @@ bool DatabaseManager::doesTableExistInDB()
 
 void DatabaseManager::createTable()
 {
-	// Construct a query that will create a table in our database
 	std::string query = "CREATE TABLE swarchTable(userName VARCHAR(50), passWord VARCHAR(50), score INT)";
 
 	// Prepares the SQL Query for use
 	error = sqlite3_prepare_v2(db, query.c_str(), query.length(), &stmt, &tail);
 
-	// If the SQL file wasn't prepared correctly, exit the method
 	if(error != SQLITE_OK)
 	{
 		std::cout << "Couldn't prepare sql" << std::endl;
@@ -218,7 +212,6 @@ void DatabaseManager::createTable()
 		return;
 	}
 
-	// Run our SQL program
 	if(sqlite3_step(stmt) == SQLITE_ERROR)
 	{
 		std::cout << "Table failed to create" << std::endl;
@@ -232,22 +225,17 @@ void DatabaseManager::createTable()
 	sqlite3_finalize(stmt);
 }
 
-// Sends updates to the webserver regarding updated player info
 std::list<PlayerScore> DatabaseManager::updateWebServer()
 {
-	// Construct a score list to be sent to the NetworkManager for transmission
 	std::list<PlayerScore> scoreList;
-
-	// Construct a query that will return all usernames and scores from within our table
 	std::string query = "SELECT * FROM swarchTable";
 
-	// Prepare the query for use by the sqlite
+	// Prepare the query for use by the SQLite
 	error = sqlite3_prepare_v2(db, query.c_str(), query.length(), &stmt, &tail);
 
-	// If an error occurred, return false
 	if(error != SQLITE_OK)
 	{
-		std::cout << "Couldn't prepare sql" << std::endl;
+		std::cout << "Couldn't prepare SQL query" << std::endl;
 		return scoreList;
 	}
 
@@ -258,7 +246,6 @@ std::list<PlayerScore> DatabaseManager::updateWebServer()
 		std::string user = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
 		int userScore = sqlite3_column_int(stmt, 2);
 
-		// Save the name and score
 		PlayerScore info;
 		info.name = user;
 		info.score = userScore;
